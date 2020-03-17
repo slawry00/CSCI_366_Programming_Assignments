@@ -18,27 +18,125 @@
 #include "common.hpp"
 #include "Server.hpp"
 
-
 /**
  * Calculate the length of a file (helper function)
  *
- * @param file - the file whose length we want to query
+ * @param file - the name of a file whose length we want to query
  * @return length of the file in bytes
  */
-int get_file_length(ifstream *file){
+int get_file_length(string file)
+{
+    std::ifstream file_stream(file, std::ios::binary | std::ios::ate);
+    int bytes = file_stream.tellg();
+    file_stream.close();
+    return bytes;
 }
 
 
 void Server::initialize(unsigned int board_size,
                         string p1_setup_board,
-                        string p2_setup_board){
+                        string p2_setup_board)
+{
+    int board_1_bytes = get_file_length(p1_setup_board);
+    int board_2_bytes = get_file_length(p2_setup_board);
+    int calc_bytes = board_size*(board_size+1); // for the newlines at the end
+    if (calc_bytes != board_1_bytes || calc_bytes != board_2_bytes)
+    {
+        string mess = "setup board(s) not correctly formatted\n"
+                      "the size of the files were: \n\t board1: " + to_string(board_1_bytes) + "\n\t board2: "
+                      + to_string(board_2_bytes) + "\nExpected a board size of: " + to_string(board_size) + "x"
+                      + to_string(board_size) + " with " + to_string(calc_bytes) + " bytes";
+        throw ServerException(mess);
+    }
+    else if (p1_setup_board == p2_setup_board)
+    {
+        throw ServerException("Player files are the same");
+    }
+    this->board_size = board_size;
+    this->p1_setup_board = p1_setup_board;
+    this->p2_setup_board = p2_setup_board;
+}
+
+void Server::check_board(string filename)
+{
+    string myText;
+    std::ifstream file_stream(filename);
+    if (file_stream)
+    {
+        while (getline(file_stream, myText)) {
+            cout << myText << endl;
+        }
+        file_stream.close();
+    }
+}
+
+int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
+{
+    if (player != 1 && player != 2)
+    {
+        throw ServerException("Player can only be 1 or 2");
+    }
+    if (x >= board_size || x < 0 || y >= board_size || y < 0)
+    {
+        return OUT_OF_BOUNDS;
+    }
+    string opp_board;
+    if (player == 1)
+        opp_board = p2_setup_board;
+    else
+        opp_board = p1_setup_board;
+    char c;
+    vector<vector<char>> board;
+    vector<char> line;
+    std::ifstream opp_board_stream(opp_board);
+    while (opp_board_stream.get(c))
+    {
+        if (c != '\n')
+            line.push_back(c);
+        else
+        {
+            board.push_back(line);
+            line.clear();
+        }
+    }
+    opp_board_stream.close();
+    if (board[y][x] != '_')
+    {
+        return HIT;
+    }
+    return MISS;
 }
 
 
-int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
-}
-
-
-int Server::process_shot(unsigned int player) {
-   return NO_SHOT_FILE;
+int Server::process_shot(unsigned int player)
+{
+    if (player != 1 && player != 2)
+    {
+        throw ServerException("Player can only be 1 or 2");
+    }
+    string shot_file_name = "player_" + std::to_string(player) + ".shot.json";
+    std::ifstream shot_stream(shot_file_name);
+    // To be extra careful of race conditions, I'm making sure the result file was deleted already
+    string result_file_name = "player_" + std::to_string(player) + ".result.json";
+    std::ifstream check_result_stream(result_file_name);
+    if (shot_stream && !check_result_stream)
+    {
+        check_result_stream.close();
+        int x, y;
+        {
+            cereal::JSONInputArchive in_archive(shot_stream);
+            in_archive(x, y);
+        }
+        shot_stream.close();
+        int result = evaluate_shot(player, x, y);
+        std::ofstream result_stream("player_" + std::to_string(player) + ".result.json");
+        {
+            cereal::JSONOutputArchive out_archive(result_stream);
+            out_archive(CEREAL_NVP(result));
+        }
+        result_stream.close();
+        remove(shot_file_name.c_str());
+        return SHOT_FILE_PROCESSED;
+    }
+    return NO_SHOT_FILE;
 }

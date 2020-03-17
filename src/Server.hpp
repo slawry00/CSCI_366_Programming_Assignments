@@ -58,10 +58,17 @@ public:
    int board_size;
 
 private:
-   ifstream p1_setup_board;
-   ifstream p2_setup_board;
+   string p1_setup_board;
+   string p2_setup_board;
+
 
 public:
+   /** To read a board while testing and debugging
+    *
+    * @param filename - the name of the file to print the contents from
+    */
+    void check_board(string filename);
+
    /**
     * Performs Server initialization
     *

@@ -21,10 +21,11 @@
 
 using namespace std;
 
-class ClientWrongPlayerNumberException: public exception{
+class ClientWrongPlayerNumberException: public exception
+{
 public:
     virtual const char* what() const throw(){
-        return "Player number our of bounds.";
+        return "Player number out of bounds.";
     }
 };
 
@@ -34,7 +35,8 @@ private:
     char *cstr;
 
 public:
-    ClientException(string message){
+    ClientException(string message)
+    {
         cstr = new char[message.size() + 1];
         message.copy(cstr, message.size() + 1);
         cstr[message.size()] = '\0';
@@ -56,6 +58,13 @@ private:
 public:
     unsigned int board_size;
     bool initialized = false;
+
+private:
+    /**
+ * Loads the board from player_#.action_board.json and returns the internal
+ * representation of it which is a vector<vector<int>>
+ */
+    vector<vector<int>> load_board();
 
 public:
     /**
