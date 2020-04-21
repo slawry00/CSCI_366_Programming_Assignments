@@ -105,6 +105,14 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
         return HIT;
     }
     return MISS;
+Server::~Server() {
+}
+
+
+BitArray2D *Server::scan_setup_board(string setup_board_name){
+}
+
+int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
 }
 
 
