@@ -60,8 +60,8 @@ public:
    unsigned int board_size;
 
 private:
-   string p1_setup_board;
-   string p2_setup_board;
+   //string p1_setup_board;
+   //string p2_setup_board;
 
 
    BitArray2D *p1_setup_board = nullptr;

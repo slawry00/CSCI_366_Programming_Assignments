@@ -72,10 +72,11 @@ private:
     * The 'char' types does not mean that each bit is stored as a character - we just need the pointer
     * to have some type since there is no type for bit.
     */
-   char* array = nullptr;
+
 
    unsigned int rows;
    unsigned int columns;
+    char* array = nullptr;
 
 public:
    /**

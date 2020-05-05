@@ -8,7 +8,7 @@ execute_process(COMMAND dos2unix ${PROJECT_SOURCE_DIR}/cmake-build-debug/src/pla
 
 include_directories(${PROJECT_SOURCE_DIR}/cereal/include)
 
-set_source_files_properties(BitArray2D.asm PROPERTIES COMPILE_FLAGS "-g -Fdwarf")
+set_source_files_properties(BitArray2D.asm PROPERTIES COMPILE_FLAGS "-f elf64 -g -F dwarf")
 
 add_library(SERVER Server.cpp Server.hpp BitArray2D.cpp BitArray2D.hpp BitArray2D.asm)
 

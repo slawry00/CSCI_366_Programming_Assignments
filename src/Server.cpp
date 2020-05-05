@@ -26,8 +26,8 @@
  */
 int get_file_length(string file)
 {
-    std::ifstream file_stream(file, std::ios::binary | std::ios::ate);
-    int bytes = file_stream.tellg();
+    std::ifstream file_stream(file, std::ios::binary | std::ios::ate); // opens file and seeks to end
+    int bytes = file_stream.tellg(); // tells the byte position (how many from the start of the file)
     file_stream.close();
     return bytes;
 }
@@ -53,8 +53,19 @@ void Server::initialize(unsigned int board_size,
         throw ServerException("Player files are the same");
     }
     this->board_size = board_size;
-    this->p1_setup_board = p1_setup_board;
-    this->p2_setup_board = p2_setup_board;
+    this->p1_setup_board = scan_setup_board(p1_setup_board);
+    this->p2_setup_board = scan_setup_board(p2_setup_board);
+    //BitArray2D* board = new BitArray2D(this->board_size, this->board_size);
+    //int j;
+    /*for (int i = 0; i < 10; i++)
+    {
+        for (j = 0; j < 10; j++)
+        {
+            cout << this->p2_setup_board->get(i, j);
+        }
+        cout << "\n";
+
+    }*/
 }
 
 void Server::check_board(string filename)
@@ -80,41 +91,50 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
     {
         return OUT_OF_BOUNDS;
     }
-    string opp_board;
+    BitArray2D* opp_board;
     if (player == 1)
         opp_board = p2_setup_board;
     else
         opp_board = p1_setup_board;
-    char c;
-    vector<vector<char>> board;
-    vector<char> line;
-    std::ifstream opp_board_stream(opp_board);
-    while (opp_board_stream.get(c))
-    {
-        if (c != '\n')
-            line.push_back(c);
-        else
-        {
-            board.push_back(line);
-            line.clear();
-        }
-    }
-    opp_board_stream.close();
-    if (board[y][x] != '_')
+    if (opp_board->get(x, y))
     {
         return HIT;
     }
     return MISS;
-Server::~Server() {
+}
+Server::~Server()
+{
+    delete this->p1_setup_board;
+    delete this->p2_setup_board;
 }
 
 
-BitArray2D *Server::scan_setup_board(string setup_board_name){
-}
+BitArray2D* Server::scan_setup_board(string setup_board_name)
+{
+    BitArray2D* board = new BitArray2D(this->board_size, this->board_size);
+    char c;
+    int col = 0;
+    int row = 0;
+    std::ifstream board_stream(setup_board_name);
+    while (board_stream.get(c))
+    {
+        if (c != '\n')
+        {
+            if (c != '_')
+            {
+                board->set(row, col);
+            }
+            col++;
+        }
+        else
+        {
+            row++;
+            col = 0;
+        }
+    }
+    return board;
 
-int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y) {
 }
-
 
 int Server::process_shot(unsigned int player)
 {
