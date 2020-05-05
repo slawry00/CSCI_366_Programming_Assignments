@@ -19,6 +19,10 @@
 
 BitArray2D::BitArray2D(unsigned int rows, unsigned int columns)
 {
+    if (rows < 1 || columns < 1)
+    {
+        throw BitArray2DException("rows and columns must be positive");
+    }
     this->rows = rows;
     this->columns = columns;
     int array_length = rows*columns/8; // 8 bits in each char which will hold our bit array
