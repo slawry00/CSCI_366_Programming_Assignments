@@ -55,17 +55,6 @@ void Server::initialize(unsigned int board_size,
     this->board_size = board_size;
     this->p1_setup_board = scan_setup_board(p1_setup_board);
     this->p2_setup_board = scan_setup_board(p2_setup_board);
-    //BitArray2D* board = new BitArray2D(this->board_size, this->board_size);
-    //int j;
-    /*for (int i = 0; i < 10; i++)
-    {
-        for (j = 0; j < 10; j++)
-        {
-            cout << this->p2_setup_board->get(i, j);
-        }
-        cout << "\n";
-
-    }*/
 }
 
 void Server::check_board(string filename)
@@ -96,7 +85,7 @@ int Server::evaluate_shot(unsigned int player, unsigned int x, unsigned int y)
         opp_board = p2_setup_board;
     else
         opp_board = p1_setup_board;
-    if (opp_board->get(x, y))
+    if (opp_board->get(y, x))
     {
         return HIT;
     }
@@ -164,6 +153,7 @@ int Server::process_shot(unsigned int player)
         }
         result_stream.close();
         remove(shot_file_name.c_str());
+        check_board("player_" + std::to_string(player) + ".result.json");
         return SHOT_FILE_PROCESSED;
     }
     return NO_SHOT_FILE;
